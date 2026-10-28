@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> JS Таблиці та Таби </title>
+        <style>
+            /* Загальні стилі для сторінки */
+            h1, p {
+                text-align: center;
+                font-family: Arial, sans-serif;
+            }
+            
+            /* СТИЛІ ДЛЯ НАВІГАЦІЇ ТАБІВ (КНОПОК) */
+            .tabs-nav {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            .tab-btn {
+                padding: 10px 20px;
+                cursor: pointer;
+                border: 1px solid #ccc;
+                background-color: #f1f1f1;
+                font-size: 16px;
+                border-radius: 4px;
+                font-family: Arial, sans-serif;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            /* Стиль для активної кнопки (вкладки) */
+            .tab-btn.active {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+
+            /* СТИЛІ ДЛЯ КОНТЕНТУ ВКЛАДОК */
+            .tab-content {
+                display: none; /* За замовчуванням приховуємо блоки з таблицями */
+            }
+            .tab-content.active {
+                display: block; /* Показуємо лише активний блок */
+            }
+
+            /* СТИЛІ ДЛЯ ТАБЛИЦЬ */
+            table {
+                margin: 20px auto;
+                border-collapse: collapse;
+                font-family: Arial, sans-serif;
+                min-width: 600px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 12px 15px;
+                text-align: center;
+            }
+            th {
+                background-color: #f4f4f4;
+                font-weight: bold;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9; /* Зебра-ефект для рядків */
+            }
+         </style>
+    </head>
+
+    <body>
+
+        <h1>JS. Приклад створення таблиць за допомогою циклів</h1> 
+        <p>Натискайте на кнопки нижче, щоб перемикатися між кафедрами</p> 
+
+        <!-- Навігація вкладок (кнопки) -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab-1">Кафедра 1</button>
+            <button class="tab-btn" data-tab="tab-2">Кафедра 2</button>
+        </div>
+
+        <!-- Контент вкладок із контейнерами для майбутніх таблиць -->
+        <div id="tab-1" class="tab-content active">
+            <div id="table-container_1"></div>
+        </div>
+
+        <div id="tab-2" class="tab-content">
+            <div id="table-container_2"></div>
+        </div>
+
+         <script>
+            // 1. МАСИВИ ДАНИХ (БАЗА ДАНИХ ВИКЛАДАЧІВ)
+            const teachersData1 = [
+                { pib: "Іванов І.І.", degree: "д.т.н.", position: "Професор", experience: "30", rate: "1" },
+                { pib: "Петров П.П.", degree: "к.т.н.", position: "Доцент", experience: "20", rate: "1" },
+                { pib: "Сидоров С.С.", degree: "-", position: "Викладач", experience: "5", rate: "1" }
+            ];
+
+            const teachersData2 = [
+                { pib: "Марченко О.А.", degree: "д.ф.-м.н.", position: "Зав. кафедри", experience: "25", rate: "1" },
+                { pib: "Коваленко О.О.", degree: "к.ф.-м.н.", position: "Доцент", experience: "12", rate: "0.5" },
+                { pib: "Шевченко В.М.", degree: "-", position: "Асистент", experience: "2", rate: "0.75" }
+            ];
+
+            // 2. ФУНКЦІЯ СТВОРЕННЯ ОДНОГО РЯДКА (Шаблон)
+            const createRow = (teacher, isHeader = false) => {
+                const row = document.createElement('tr');
+                const cellType = isHeader ? 'th' : 'td';
+              
+                // Формуємо масив значень для клітинок
+                const columns = isHeader 
+                    ? ["ПІБ", "Вчена ступінь", "Посада", "Стаж роботи", "Ставка"]
+                    : [teacher.pib, teacher.degree, teacher.position, teacher.experience, teacher.rate];
+
+                // Циклом перебираємо масив та створюємо HTML-клітинки всередині рядка
+                columns.forEach(text => {
+                    const cell = document.createElement(cellType);
+                    cell.textContent = text;
+                    row.appendChild(cell);
+                });
+
+                return row;
+            };
+
+            // 3. УНІВЕРСАЛЬНА ФУНКЦІЯ ЗБИРАННЯ ТАБЛИЦІ
+            const buildTable = (dataArray, containerId) => {
+                const container = document.getElementById(containerId);
+                const table = document.createElement('table');
+
+                // Додаємо рядок-заголовок (передаємо null як дані об'єкта)
+                table.appendChild(createRow(null, true));
+
+                // Циклом forEach перебираємо масив об'єктів та додаємо рядки даних
+                dataArray.forEach(teacher => {
+                    table.appendChild(createRow(teacher));
+                });
+
+                // Вставляємо готову таблицю в її контейнер
+                container.appendChild(table);
+            };
+
+            // Генерація обох таблиць при завантаженні сторінки
+            buildTable(teachersData1, 'table-container_1');
+            buildTable(teachersData2, 'table-container_2');
+
+
+            // 4. ЛОГІКА ПЕРЕМИКАННЯ ТАБІВ (ВКЛАДОК)
+            const buttons = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Активація потрібної кнопки
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Приховування всього контенту
+                    contents.forEach(content => content.classList.remove('active'));
+
+                    // Відображення таблиці, яка відповідає натиснутій кнопці
+                    const targetId = button.getAttribute('data-tab');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+        </script>
+
+    </body>
+</html>
