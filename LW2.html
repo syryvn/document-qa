@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> JS Таблиці, Таби та Форма </title>
+        <style>
+            /* Загальні стилі */
+            h1, p {
+                text-align: center;
+                font-family: Arial, sans-serif;
+            }
+
+            /* Кнопка виведення форми */
+            .open-form-btn {
+                display: block;
+                margin: 20px auto;
+                padding: 12px 28px;
+                background-color: #28a745;
+                color: #fff;
+                border: none;
+                border-radius: 4px;
+                font-size: 16px;
+                font-family: Arial, sans-serif;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            .open-form-btn:hover {
+                background-color: #218838;
+            }
+
+            /* Модальне вікно форми */
+            .modal-overlay {
+                display: none;                 /* за замовчуванням приховане */
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+                overflow-y: auto;
+            }
+            .modal-overlay.show {
+                display: flex;                 /* показуємо як flex-центрований блок */
+            }
+
+            /* Стилі для форми додавання викладачів */
+            .form-container {
+                position: relative;
+                width: 100%;
+                max-width: 600px;
+                margin: 0;                     /* у модалці margin не потрібен */
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                background-color: #f9f9f9;
+                font-family: Arial, sans-serif;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                max-height: 90vh;
+                overflow-y: auto;
+                animation: modalFadeIn 0.2s ease-out;
+            }
+            @keyframes modalFadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+
+            /* Хрестик закриття */
+            .close-btn {
+                position: absolute;
+                top: 6px;
+                right: 12px;
+                background: none;
+                border: none;
+                font-size: 28px;
+                line-height: 1;
+                color: #888;
+                cursor: pointer;
+                transition: color 0.2s;
+            }
+            .close-btn:hover {
+                color: #000;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+                display: flex;
+                flex-direction: column;
+            }
+            .form-group label {
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            .form-group input, .form-group select {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            .submit-btn {
+                padding: 10px 15px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 16px;
+                cursor: pointer;
+                width: 100%;
+                transition: background-color 0.2s;
+            }
+            .submit-btn:hover {
+                background-color: #218838;
+            }
+
+            /* СТИЛІ ДЛЯ НАВІГАЦІЇ ТАБІВ (КНОПОК) */
+            .tabs-nav {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin: 30px 0 20px 0;
+            }
+            .tab-btn {
+                padding: 10px 20px;
+                cursor: pointer;
+                border: 1px solid #ccc;
+                background-color: #f1f1f1;
+                font-size: 16px;
+                border-radius: 4px;
+                font-family: Arial, sans-serif;
+                transition: background-color 0.3s, color 0.3s;
+            }
+            .tab-btn.active {
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+
+            /* СТИЛІ ДЛЯ КОНТЕНТУ ВКЛАДОК */
+            .tab-content {
+                display: none;
+            }
+            .tab-content.active {
+                display: block;
+            }
+
+            /* Стилі для таблиць */
+            table {
+                margin: 20px auto;
+                border-collapse: collapse;
+                font-family: Arial, sans-serif;
+                min-width: 600px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            th, td {
+                border: 1px solid #ddd;
+                padding: 12px 15px;
+                text-align: center;
+            }
+            th {
+                background-color: #f4f4f4;
+                font-weight: bold;
+            }
+            tr:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+         </style>
+    </head>
+
+    <body>
+
+        <h1>JS. Створення таблиць та додавання даних через форму</h1>
+
+        <!-- Кнопка, що відкриває спливаючу форму -->
+        <button type="button" class="open-form-btn" id="open-form-btn">+ Додати викладача</button>
+
+        <!-- СПЛИВАЮЧЕ ВІКНО З ФОРМОЮ -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="form-container" role="dialog" aria-modal="true" aria-labelledby="form-title">
+                <button type="button" class="close-btn" id="close-form-btn" title="Закрити">&times;</button>
+                <h2 id="form-title">Додати викладача</h2>
+                <form id="teacher-form">
+                    <div class="form-group">
+                        <label for="pib">ПІБ:</label>
+                        <input type="text" id="pib" required placeholder="Наприклад: Сидоренко А.П.">
+                    </div>
+                    <div class="form-group">
+                        <label for="degree">Вчена ступінь:</label>
+                        <input type="text" id="degree" placeholder="Наприклад: к.т.н. або –">
+                    </div>
+                    <div class="form-group">
+                        <label for="position">Посада:</label>
+                        <input type="text" id="position" required placeholder="Наприклад: Доцент">
+                    </div>
+                    <div class="form-group">
+                        <label for="experience">Стаж роботи (років):</label>
+                        <input type="number" id="experience" required min="0" placeholder="Наприклад: 5">
+                    </div>
+                    <div class="form-group">
+                        <label for="rate">Ставка:</label>
+                        <input type="number" id="rate" required min="0.1" max="2" step="0.05" placeholder="Наприклад: 1">
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Кафедра:</label>
+                        <select id="department">
+                            <option value="1">Кафедра 1</option>
+                            <option value="2">Кафедра 2</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn">Додати до таблиці</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Навігація вкладок -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab-1">Кафедра 1</button>
+            <button class="tab-btn" data-tab="tab-2">Кафедра 2</button>
+        </div>
+
+        <!-- Контент вкладок -->
+        <div id="tab-1" class="tab-content active">
+            <div id="table-container_1"></div>
+        </div>
+
+        <div id="tab-2" class="tab-content">
+            <div id="table-container_2"></div>
+        </div>
+
+        <script>
+            // 1. МАСИВИ ДАНИХ
+            const teachersData1 = [
+                { pib: "Іванов І.І.", degree: "д.т.н.", position: "Професор", experience: "30", rate: "1" },
+                { pib: "Петров П.П.", degree: "к.т.н.", position: "Доцент", experience: "20", rate: "1" }
+            ];
+
+            const teachersData2 = [
+                { pib: "Марченко О.А.", degree: "д.ф.-м.н.", position: "Зав. кафедри", experience: "25", rate: "1" },
+                { pib: "Коваленко О.О.", degree: "к.ф.-м.н.", position: "Доцент", experience: "12", rate: "0.5" }
+            ];
+
+            // 2. ФУНКЦІЯ СТВОРЕННЯ РЯДКА
+            const createRow = (teacher, isHeader = false) => {
+                const row = document.createElement('tr');
+                const cellType = isHeader ? 'th' : 'td';
+
+                const columns = isHeader
+                    ? ["ПІБ", "Вчена ступінь", "Посада", "Стаж роботи", "Ставка"]
+                    : [teacher.pib, teacher.degree, teacher.position, teacher.experience, teacher.rate];
+
+                columns.forEach(text => {
+                    const cell = document.createElement(cellType);
+                    cell.textContent = text;
+                    row.appendChild(cell);
+                });
+
+                return row;
+            };
+
+            // 3. УНІВЕРСАЛЬНА ФУНКЦІЯ ЗБИРАННЯ ТАБЛИЦІ
+            const buildTable = (dataArray, containerId) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = ''; // очищення перед перемальовуванням
+
+                const table = document.createElement('table');
+                table.appendChild(createRow(null, true));
+
+                dataArray.forEach(teacher => {
+                    table.appendChild(createRow(teacher));
+                });
+
+                container.appendChild(table);
+            };
+
+            const refreshTables = () => {
+                buildTable(teachersData1, 'table-container_1');
+                buildTable(teachersData2, 'table-container_2');
+            };
+            refreshTables();
+
+
+            // 4. ЛОГІКА МОДАЛЬНОГО ВІКНА (СПЛИВАЮЧОЇ ФОРМИ)
+            const overlay   = document.getElementById('modal-overlay');
+            const openBtn   = document.getElementById('open-form-btn');
+            const closeBtn  = document.getElementById('close-form-btn');
+
+            const openModal = () => {
+                overlay.classList.add('show');
+                document.body.style.overflow = 'hidden'; // блокуємо прокрутку сторінки
+                document.getElementById('pib').focus();
+            };
+
+            const closeModal = () => {
+                overlay.classList.remove('show');
+                document.body.style.overflow = ''; // повертаємо прокрутку
+            };
+
+            openBtn.addEventListener('click', openModal);
+            closeBtn.addEventListener('click', closeModal);
+
+            // Клік по темному фону (поза формою) — закриває вікно
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    closeModal();
+                }
+            });
+
+            // Закриття клавішею Esc
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && overlay.classList.contains('show')) {
+                    closeModal();
+                }
+            });
+
+
+            // 5. ОБРОБКА ФОРМИ ДОДАВАННЯ
+            const form = document.getElementById('teacher-form');
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault(); // скасовуємо перезавантаження сторінки
+
+                const newTeacher = {
+                    pib: document.getElementById('pib').value,
+                    degree: document.getElementById('degree').value || "-",
+                    position: document.getElementById('position').value,
+                    experience: document.getElementById('experience').value,
+                    rate: document.getElementById('rate').value
+                };
+
+                const selectedDept = document.getElementById('department').value;
+
+                if (selectedDept === "1") {
+                    teachersData1.push(newTeacher);
+                } else if (selectedDept === "2") {
+                    teachersData2.push(newTeacher);
+                }
+
+                refreshTables();
+                form.reset();
+                closeModal(); // після додавання закриваємо спливаюче вікно
+            });
+
+
+            // 6. ЛОГІКА ПЕРЕМИКАННЯ ТАБІВ
+            const buttons  = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.tab-content');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    contents.forEach(content => content.classList.remove('active'));
+
+                    const targetId = button.getAttribute('data-tab');
+                    document.getElementById(targetId).classList.add('active');
+                });
+            });
+        </script>
+
+    </body>
+</html>
